@@ -15,6 +15,77 @@
 
 `mode=auto`（默认）会按模型名自动选：名字含 gemini / banana / 4o-image / sora-image / `-all` 的走 chat，其余走 images。chat 返回的图片无论是 markdown 链接、data URL、`message.images[]` 还是 image parts 都能解析。
 
+## 先给方案，再出图
+
+对 Agent 说「给这期视频做一张封面」，它会先给方案，再调用你的中转站出图：
+
+1. **推荐方向**：`suggest_directions` 给出至少四个机制不同的方向，覆盖文字主导、平面结构、摄影、产品近摄、材料空间和 Mondo 海报等家族，并列出每个方向需要补充的信息。
+2. **选择方向**：你可以选一个、几个，或者说「你定」；想看更多时可以排除已有方向后再次推荐。
+3. **展开提示词**：`compose_prompt` 把模板变量展开为完整提示词，同时给出避免项、验收条件、假设和缺失信息。
+4. **调用中转站**：`generate_image` 按选定方向生成图片，并在旁边保存包含提示词、模型和后端域名的 JSON 旁注，方便复现。
+5. **检查结果**：Agent 对照验收条件检查主体关系、比例、文字和参考图；失败时只修改对应关系再生成一次。
+
+如果你已经指定了风格（例如「用 Mondo 风格」或「T03」），或者明确说「直接出」，会跳过选择步骤。整个流程不需要 Codex CLI，只使用你配置的 OpenAI 兼容中转站。
+
+## 能做什么
+
+| 你说 | 它做 |
+| --- | --- |
+| 给这期视频做一张 16:9 视频封面 | 使用 `video-cover` 预设，安排标题留白和安全区，返回文件路径与像素尺寸 |
+| 做一张小红书配图，主题是清晨读书 | 使用 `xiaohongshu` 预设生成 3:4 竖版构图，保留顶部标题位 |
+| 用 Mondo 风格做一张电影海报 | 从 20 位 Mondo 设计师风格中选择或并行生成多个方向 |
+| 把这张图的背景换成米色纸，主体不变 | 通过 `reference_images` 或 CLI `--ref` 走图生图接口 |
+| 公众号头图、X 封面、朋友圈海报、书籍或专辑封面 | 使用对应场景预设的比例和安全区规则 |
+| 给我几个风格，帮我选一个 | 返回至少四个机制不同的方向，再按你的选择展开提示词 |
+| 找以前类似的案例 | 在本地可选的参考提示词库中检索，不配置语料库也不影响其他功能 |
+
+## 样例
+
+### 对 Agent 的说法
+
+```text
+给这期视频做一张 16:9 封面，主题是咖啡店阅读月，先给我四个风格方向。
+```
+
+```text
+用 Mondo 风格做一张沙漠科幻电影海报，不要放字，先给三个方向。
+```
+
+```text
+把 /Users/me/pencil.png 的背景换成米色纸张，主体和构图保持不变。
+```
+
+### CLI 完整流程
+
+```bash
+# 先给方向（免费，不调用生图 API）
+node scripts/cli.mjs suggest "一个月的咖啡店阅读活动" --for 视频封面
+
+# 选定方向后展开完整提示词（免费）
+node scripts/cli.mjs compose --template T03-1 \
+  --var topic=咖啡店阅读月 --var subject=窗边读书的人 --var headline=咖啡店阅读月
+
+# 生成图片，并把提示词和参数写入旁边的 .json
+node scripts/cli.mjs generate --template T03-1 \
+  --var topic=咖啡店阅读月 --var subject=窗边读书的人 --var headline=咖啡店阅读月 \
+  --model gpt-image-1 --quality high
+```
+
+### 简易路线和改图
+
+```bash
+# 不经过方向推荐，直接用场景和风格生成三个变体
+node scripts/cli.mjs "巨大的红色播放键像日出一样升起" \
+  --preset video-cover --style saul-bass --count 3
+
+# 参考图改图
+node scripts/cli.mjs "保持同一支铅笔，背景换成暖米色纸张" \
+  --ref /Users/me/pencil.png --ratio 1:1
+
+# 只查看提示词，不调用 API
+node scripts/cli.mjs "咖啡和书" --preset xiaohongshu --show-prompt
+```
+
 ## 安装
 
 ```bash
