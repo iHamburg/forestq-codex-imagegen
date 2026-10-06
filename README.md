@@ -41,50 +41,79 @@
 
 ## 样例
 
-### 对 Agent 的说法
+下面的图片和提示词参数来自上游 [qiaomu-codex-imagegen](https://github.com/joeseesun/qiaomu-codex-imagegen) 的公开样例，用于展示本项目保留的模板机制和场景覆盖。图片由上游使用 Codex 生成，没有后期修图；活动、品牌、人物和文案全部是**虚构的示例**。完整提示词和参数见 [docs/samples/prompts.json](docs/samples/prompts.json)。当前项目可通过你配置的中转站 API，使用同一套模板重新生成或改图。
 
-```text
-给这期视频做一张 16:9 封面，主题是咖啡店阅读月，先给我四个风格方向。
-```
+### 同一个主题，五个方向
 
-```text
-用 Mondo 风格做一张沙漠科幻电影海报，不要放字，先给三个方向。
-```
+主题都是「咖啡店阅读月」。`suggest_directions` 给出的方向机制完全不同，所以出来的不是同一张图换个滤镜：
 
-```text
-把 /Users/me/pencil.png 的背景换成米色纸张，主体和构图保持不变。
-```
+<img src="docs/samples/directions-strip.webp" alt="同一主题的五个风格方向" width="100%">
 
-### CLI 完整流程
+| 方向 | 机制 |
+| --- | --- |
+| 1 · T01 巨字与微小叙事 | 大字是场景的墙，水边的小读者提供尺度 |
+| 2 · T02 物象破框 | 一枝咖啡树穿出细框，越界只发生一次 |
+| 3 · T05 纸雕与织物地貌 | 书页的层叠被读成山河，微小读者坐在边缘 |
+| 4 · T16 巨物微缩剧场 | 一杯拿铁放大成可进入的阅读小镇 |
+| 5 · Mondo · Olly Moss | 两色丝网印，杯子的负空间里藏着一本书 |
 
-```bash
-# 先给方向（免费，不调用生图 API）
-node scripts/cli.mjs suggest "一个月的咖啡店阅读活动" --for 视频封面
+### 24 个类别各一张
 
-# 选定方向后展开完整提示词（免费）
-node scripts/cli.mjs compose --template T03-1 \
-  --var topic=咖啡店阅读月 --var subject=窗边读书的人 --var headline=咖啡店阅读月
+<img src="docs/samples/categories-24.webp" alt="24 个模板类别各一张样例" width="100%">
 
-# 生成图片，并把提示词和参数写入旁边的 .json
-node scripts/cli.mjs generate --template T03-1 \
-  --var topic=咖啡店阅读月 --var subject=窗边读书的人 --var headline=咖啡店阅读月 \
-  --model gpt-image-1 --quality high
-```
+| 类别与预设 | 样例 | 机制与文字 |
+| --- | --- | --- |
+| **T01 巨字与微小叙事**<br>预设 T01-1 旧刊慢场 | <img src="docs/samples/T01-giant-type.webp" width="220" alt="巨字与微小叙事样例"> | 大字是场景的墙，微小行动提供尺度；静止水平面被一条斜线打破。<br><sub>文字：exact_short：标题 + 副标题 + 信息行</sub> |
+| **T02 物象破框**<br>预设 T02-1 清透巨叶 | <img src="docs/samples/T02-breaking-frame.webp" width="220" alt="物象破框样例"> | 框线建立秩序，实体穿过框线制造一次明确的越界。<br><sub>文字：exact_short</sub> |
+| **T03 中央光隙**<br>预设 T03-1 清润春生 | <img src="docs/samples/T03-center-light.webp" width="220" alt="中央光隙样例"> | 两侧巨大色域夹出中央通道，通道尽头的微小焦点表现希望。<br><sub>文字：exact_short</sub> |
+| **T04 东方水墨编辑**<br>预设 T04-1 清透墨枝 | <img src="docs/samples/T04-ink-editorial.webp" width="220" alt="东方水墨编辑样例"> | 水墨是空间与版式的一部分，宋体大字、透明色域和留白互相穿插。<br><sub>文字：exact_short</sub> |
+| **T05 纸雕与织物地貌**<br>预设 T05-1 纸雕田垄 | <img src="docs/samples/T05-paper-terrain.webp" width="220" alt="纸雕与织物地貌样例"> | 主题被转译成有材料厚度的地貌，微小物象为抽象层叠提供故事。<br><sub>文字：exact_short</sub> |
+| **T06 民艺撞色招贴**<br>预设 T06-1 粗印民艺 | <img src="docs/samples/T06-folk-poster.webp" width="220" alt="民艺撞色招贴样例"> | 两枚朴拙图符以冷暖强色对话，手写线把图像区和跳跃资讯区缝合。<br><sub>文字：exact_short：标题 + 活动名 + 时间地点 + 亮点</sub> |
+| **T07 童画与硬排版**<br>预设 T07-1 蜡笔展览 | <img src="docs/samples/T07-child-drawing.webp" width="220" alt="童画与硬排版样例"> | 粗重现代字与松软儿童笔触互相挤压，细框提供第三种秩序。<br><sub>文字：exact_short</sub> |
+| **T08 摄影与花境拼贴**<br>预设 T08-1 柔彩花境 | <img src="docs/samples/T08-photo-floral.webp" width="220" alt="摄影与花境拼贴样例"> | 刊头、摄影焦点、手绘前景、底栏构成连续层次，照片与插画必须相互遮挡。<br><sub>文字：exact_short</sub> |
+| **T09 克制棚拍肖像**<br>预设 T09-1 柔灰专注 | <img src="docs/samples/T09-studio-portrait.webp" width="220" alt="克制棚拍肖像样例"> | 一主一辅的柔光塑造骨相，动作支撑与皮肤细节决定可信度。<br><sub>文字：none：纯肖像无字</sub> |
+| **T10 环境自然肖像**<br>预设 T10-1 暮阳天台 | <img src="docs/samples/T10-environment-portrait.webp" width="220" alt="环境自然肖像样例"> | 人物真实地处在环境中，动作先成立，光与景深再分离主体。<br><sub>文字：none：纯肖像无字</sub> |
+| **T11 婚礼与仪式肖像**<br>预设 T11-1 晴天珍珠 | <img src="docs/samples/T11-wedding-portrait.webp" width="220" alt="婚礼与仪式肖像样例"> | 身份稳定是底座；薄纱、妆发和单一光线建立仪式感。<br><sub>文字：none：纯肖像无字</sub> |
+| **T12 食品触感近摄**<br>预设 T12-2 暖纸酥香 | <img src="docs/samples/T12-food-macro.webp" width="220" alt="食品触感近摄样例"> | 放大可食用的断面与真实触感，信息退到留白而不覆盖食物。<br><sub>文字：exact_short</sub> |
+| **T13 饮品微距风味**<br>预设 T13-2 气泡切面 | <img src="docs/samples/T13-drink-macro.webp" width="220" alt="饮品微距风味样例"> | 液体或果肉切面变成放大景观，气泡与水光体现风味而非替代产品事实。<br><sub>文字：exact_short</sub> |
+| **T14 植物手绘产品广告**<br>预设 T14-1 清透水彩 | <img src="docs/samples/T14-botanical-product.webp" width="220" alt="植物手绘产品样例"> | 真实产品与平面手绘并置，水彩路径环抱并贴附载体而非均匀铺花。<br><sub>文字：exact_short</sub> |
+| **T15 科技轨道产品主视觉**<br>预设 T15-1 清透未来 | <img src="docs/samples/T15-tech-orbit.webp" width="220" alt="科技轨道产品样例"> | 产品是稳定中心，环形波纹和局部光线共同指向它。<br><sub>文字：exact_short</sub> |
+| **T16 巨物微缩剧场**<br>预设 T16-1 食品小镇 | <img src="docs/samples/T16-giant-miniature.webp" width="220" alt="巨物微缩剧场样例"> | 巨物真正承担可进入的空间功能，微型人物的动作必须回应它。<br><sub>文字：exact_short</sub> |
+| **T17 建筑制图编辑**<br>预设 T17-1 圆规素纸 | <img src="docs/samples/T17-architectural-drawing.webp" width="220" alt="建筑制图编辑样例"> | 真实结构件与有依据的几何线共享轴线，文字保持疏远而精密。<br><sub>文字：exact_short：竖排标题</sub> |
+| **T18 旅行与酒店框景**<br>预设 T18-1 温润拱窗 | <img src="docs/samples/T18-framed-view.webp" width="220" alt="旅行与酒店框景样例"> | 框景把观看者带入第二空间，说明围绕入口组织。<br><sub>文字：exact_short</sub> |
+| **T19 文博材质巨像**<br>预设 T19-1 粗陶暗腔 | <img src="docs/samples/T19-museum-material.webp" width="220" alt="文博材质巨像样例"> | 材料孔隙与巨大的暗腔制造尺度，洁净空场和疏远文字维持静穆。<br><sub>文字：exact_short</sub> |
+| **T20 会议与人物信息系统**<br>预设 T20-1 清爽斜带 | <img src="docs/samples/T20-lineup-system.webp" width="220" alt="会议与人物信息系统样例"> | 重复单元共享节奏，一组定向斜切将照片与信息连接。<br><sub>文字：exact_short：四位虚构嘉宾的姓名与头衔</sub> |
+| **T21 九宫格日常手账**<br>预设 T21-1 绒线注释 | <img src="docs/samples/T21-nine-grid.webp" width="220" alt="九宫格日常手账样例"> | 统一矩阵中保留不同镜头密度，手绘标记必须回应格内内容。<br><sub>文字：exact_short</sub> |
+| **T22 模块化演示视觉**<br>预设 T22-1 淡块作品集 | <img src="docs/samples/T22-slide.webp" width="220" alt="模块化演示视觉样例"> | 标题与数据先建立信息层级，图形按页的叙事功能进入共同网格。<br><sub>文字：exact_short：标题 + 四项目录</sub> |
+| **T23 科普与商品信息卡**<br>预设 T23-1 友好研究卡 | <img src="docs/samples/T23-info-card.webp" width="220" alt="科普与商品信息卡样例"> | 每组图形只解释一个命题，图与文的换位节拍代替装饰密度。<br><sub>文字：exact_short：标题 + 三条步骤</sub> |
+| **T24 日签与编辑纪念**<br>预设 T24-1 城市晨光 | <img src="docs/samples/T24-daily-card.webp" width="220" alt="日签与编辑纪念样例"> | 日期是锚点，实体照片是核心，一道问候跨过照片和纸面。<br><sub>文字：exact_short：标题 + 一句寄语</sub> |
 
-### 简易路线和改图
+### 场景样例
 
-```bash
-# 不经过方向推荐，直接用场景和风格生成三个变体
-node scripts/cli.mjs "巨大的红色播放键像日出一样升起" \
-  --preset video-cover --style saul-bass --count 3
+| 视频封面 16:9 | 竖屏封面 9:16 |
+| --- | --- |
+| <img src="docs/samples/scene-video-cover-16x9.webp" width="420" alt="视频封面"> | <img src="docs/samples/scene-video-vertical-9x16.webp" width="240" alt="竖屏封面"> |
+| `--preset video-cover --style saul-bass`，标题压在左侧留白 | `--preset video-vertical --style kilian-eng`，标题在上部安全区 |
 
-# 参考图改图
-node scripts/cli.mjs "保持同一支铅笔，背景换成暖米色纸张" \
-  --ref /Users/me/pencil.png --ratio 1:1
+| 公众号头图 2.35:1 | 小红书 3:4 |
+| --- | --- |
+| <img src="docs/samples/scene-wechat-cover-2.35.webp" width="420" alt="公众号头图"> | <img src="docs/samples/T12-food-macro.webp" width="240" alt="小红书配图"> |
+| `--preset wechat-cover`，标题在右侧天空 | T12 食品近摄 + `xiaohongshu` 尺寸 |
 
-# 只查看提示词，不调用 API
-node scripts/cli.mjs "咖啡和书" --preset xiaohongshu --show-prompt
-```
+### 改图
+
+| 原图 | 改后 |
+| --- | --- |
+| <img src="docs/samples/edit-before.webp" width="280" alt="改图前"> | <img src="docs/samples/edit-after.webp" width="280" alt="改图后"> |
+| 一支铅笔 | `--ref` 原图，提示词：保持同一支铅笔，背景换成暖米色纸张，加柔和阴影 |
+
+### 这些样例是怎么做出来的
+
+- 每个类别都走完整流程：推荐方向、填变量、生成、**对着参考案例验收**。
+- **第一版不合格，重做了**：最初只给了标题甚至不给文字，出来的是干净的概念图，不是海报；并排对照参考案例后，补全副标题、信息行和角标这一层文字，才有现在的完成度。肖像（T09–T11）按方法论保持无字。
+- 透明区域会造成看图软件中的黑边；当前项目会要求背景不透明，保存后检测到透明区域会自动压平到白底（`transparent_background: true` 可保留）。
+- 图内文字：标题和主要文案应逐张核对；小字号的信息行仍可能有细微瑕疵，正式使用请放大检查。
+- 肖像是 AI 生成的虚构人物，不对应真实个人。
 
 ## 安装
 
