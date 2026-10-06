@@ -1,0 +1,47 @@
+{
+  "name": "forestq-codex-imagegen",
+  "version": "1.0.0",
+  "description": "Image generation through any OpenAI-compatible relay API (中转站) as an MCP server, a CLI and an agent skill for Codex / Claude Code, with poster / video cover / Xiaohongshu prompt craft built in. Fork of qiaomu-codex-imagegen without the Codex CLI dependency.",
+  "type": "module",
+  "license": "MIT",
+  "author": "ForestQ",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iHamburg/forestq-codex-imagegen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iHamburg/forestq-codex-imagegen/issues"
+  },
+  "homepage": "https://github.com/iHamburg/forestq-codex-imagegen#readme",
+  "bin": {
+    "forestq-imagegen": "scripts/cli.mjs",
+    "forestq-imagegen-mcp": "scripts/mcp-server.mjs"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "test": "node --test tests/imagegen.test.mjs",
+    "mcp": "node scripts/mcp-server.mjs",
+    "doctor": "node scripts/cli.mjs doctor"
+  },
+  "files": [
+    "SKILL.md",
+    "README.md",
+    "LICENSE",
+    "scripts",
+    "references",
+    "agents"
+  ],
+  "keywords": [
+    "mcp",
+    "codex",
+    "claude-code",
+    "image-generation",
+    "gpt-image-1",
+    "openai-compatible",
+    "agent-skill",
+    "poster",
+    "xiaohongshu"
+  ]
+}

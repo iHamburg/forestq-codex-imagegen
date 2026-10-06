@@ -1,0 +1,35 @@
+interface:
+  display_name: "ForestQ Codex ImageGen"
+  short_description: "Generate images through your OpenAI-compatible relay API from Codex, Claude Code or any MCP client, with poster, video cover and Xiaohongshu craft built in"
+  default_prompt: "Use $forestq-codex-imagegen for every image request. First extract topic, deliverable, ratio, text mode (none / exact_short / typeset_later), exact facts and reference roles; ask only blocking questions. Then call suggest_directions and present at least four divergent style directions (different visual mechanisms) with one concrete sentence each, and let the user choose, unless they already fixed a style or said to go ahead. Expand each chosen template with compose_prompt using concrete variables (no invented facts, colours as roles, rewrite structural overrides by hand), call generate_image once per chosen direction, then look at every image and check it against the acceptance checks. Each call spends the user's relay API credit, so no test generations. If generation fails, run check_backend and report what it says."
+  examples:
+    - "给我几个风格方向，我要做一张咖啡店阅读月的海报"
+    - "帮我做一张小红书配图，主题是清晨读书"
+    - "给这期视频做一张 16:9 的视频封面，要有设计感"
+    - "用 Mondo 风格做一张《沙丘》的电影海报，三个设计师风格各来一张"
+    - "把这张图的背景换成米色纸张，主体不变"
+    - "用 gemini-2.5-flash-image 画一张公众号头图"
+compatibility:
+  canonical_format: "agent-skills"
+  adapter_targets: ["claude", "openai", "generic", "agent-skills-compatible"]
+  activation:
+    mode: "manual"
+    paths: []
+  execution:
+    context: "inline"
+    shell: "bash"
+  trust:
+    source_tier: "local"
+    remote_inline_execution: "forbid"
+    remote_metadata_policy: "allow catalog metadata and read-only source review; forbid unreviewed execution"
+    generated_public_claims: "evidence-bound"
+  permissions:
+    network: "HTTPS to the configured relay base_url only (plus image URLs it returns); API key read from env or ~/.config/forestq-codex-imagegen/config.json"
+    file_write: "image output directory only (default ~/Pictures/forestq-codex-imagegen); config file only via `cli.mjs config set`"
+    subprocess: "none"
+    interactive: "avoid"
+  degradation:
+    claude: "mcp-tool-or-cli"
+    openai: "mcp-tool-or-cli"
+    generic: "cli"
+    agent-skills-compatible: "cli"
